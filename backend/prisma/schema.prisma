@@ -1,0 +1,148 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+enum RoleName {
+  ADMIN
+  STAFF
+}
+enum TableStatus {
+  EMPTY
+  OCCUPIED
+}
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  SERVED
+  PAID
+  CANCELLED
+}
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Role {
+  id String @id @default(uuid())
+  role RoleName @unique
+
+  users User[]
+}
+
+model User{
+  id String @id @default(uuid())
+  name String
+  email String? @unique
+  password String
+  roleId String
+  role Role @relation(fields: [roleId], references: [id])
+}
+
+model Table {
+  id String @id @default(uuid())
+  name String @unique
+  status TableStatus @default(EMPTY)
+
+  sessions TableSession[]
+  orders Order[]
+}
+
+enum SessionStatus {
+  ACTIVE
+  CLOSED
+}
+
+model TableSession {
+  id String @id @default(uuid())
+  tableId String @unique
+  table Table @relation(fields: [tableId], references: [id])
+  status    SessionStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  userSession UserSession[]
+
+  @@unique([tableId, status])
+}
+
+model UserSession {
+  id String @id @default(uuid())
+  tableSessionId String
+  tableSession TableSession @relation(fields: [tableSessionId], references:[id])
+}
+
+model Category {
+  id String @id @default(uuid())
+  name String
+  parentId String?
+
+  parent Category? @relation("CategoryTree", fields: [parentId], references:[id])
+  children Category[] @relation("CategoryTree")
+
+  products Product[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+
+  isAvailable Boolean  @default(true)
+
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          String   @id @default(uuid())
+  tableId String 
+  table     Table       @relation(fields: [tableId], references: [id])
+
+  status    OrderStatus @default(PENDING)
+
+  total Float @default(0)
+
+  createdAt DateTime    @default(now())
+
+  items OrderItem[]
+  payment Payment?
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   String
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+
+  quantity  Int     @default(1)
+  unitPrice Float
+}
+
+model Payment {
+  id String @id @default(uuid())
+
+  orderId String @unique
+  order     Order         @relation(fields: [orderId], references: [id])
+  method    String
+  status    PaymentStatus @default(PENDING)
+
+  amount    Float
+
+  createdAt DateTime      @default(now())
+}
