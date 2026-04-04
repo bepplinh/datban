@@ -37,6 +37,8 @@ jobs:
         run: |
           cd backend
           npx prisma generate
+        env:
+          DATABASE_URL: "mysql://root:password@localhost:3306/datban"
 
       - name: Docker Build Check
         run: docker build -t backend-check ./backend
