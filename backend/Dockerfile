@@ -3,6 +3,9 @@
 # BUILD STAGE
 FROM node:20-alpine AS builder
 
+# Install build dependencies for native modules (like bcrypt)
+RUN apk add --no-cache make gcc g++ python3
+
 WORKDIR /app
 
 # Install dependencies first (better caching)
