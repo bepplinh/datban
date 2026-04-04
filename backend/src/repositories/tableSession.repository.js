@@ -2,13 +2,13 @@ import prisma from "../libs/prisma.js";
 
 const tableSessionRepo = {
   createTableSession: (tableId, expiresAt) => {
-    return prisma.tableSession.create({
+    return prisma.tablesession.create({
       data: { tableId, expiresAt },
     });
   },
 
   findActiveTableSession: (tableId, now = new Date()) => {
-    return prisma.tableSession.findFirst({
+    return prisma.tablesession.findFirst({
       where: {
         tableId,
         status: "ACTIVE",
@@ -18,10 +18,9 @@ const tableSessionRepo = {
     });
   },
 
-  findById: (id) => {
-    return prisma.tableSession.findUnique({
-      where: { id },
-      include: { table: true },
+  findTableSessionById: (id) => {
+    return prisma.tablesession.findUnique({
+      where: { id: id },
     });
   },
 };

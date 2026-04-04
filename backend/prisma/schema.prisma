@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,15 +6,147 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-enum RoleName {
+
+model category {
+  id        String    @id @default(uuid())
+  name      String    @unique(map: "Category_name_key")
+  sortOrder Int       @default(0)
+  product   product[]
+}
+
+model order {
+  id             String       @id @default(uuid())
+  tableId        String
+  tableSessionId String       @unique(map: "Order_tableSessionId_key")
+  status         order_status @default(PENDING)
+  total          Float        @default(0)
+  createdAt      DateTime     @default(now())
+  orderNumber    Int          @unique
+  table          table        @relation(fields: [tableId], references: [id], map: "Order_tableId_fkey")
+  tablesession   tablesession @relation(fields: [tableSessionId], references: [id], map: "Order_tableSessionId_fkey")
+  items          orderitem[]
+  payment        payment?
+
+  @@index([tableId], map: "Order_tableId_fkey")
+}
+
+model orderitem {
+  id        String           @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int              @default(1)
+  unitPrice Float
+  status    orderitem_status @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime
+  order     order            @relation(fields: [orderId], references: [id], map: "OrderItem_orderId_fkey")
+  product   product          @relation(fields: [productId], references: [id], map: "OrderItem_productId_fkey")
+
+  @@index([orderId], map: "OrderItem_orderId_fkey")
+  @@index([productId], map: "OrderItem_productId_fkey")
+}
+
+model payment {
+  id        String         @id @default(uuid())
+  orderId   String         @unique(map: "Payment_orderId_key")
+  method    String
+  status    payment_status @default(PENDING)
+  amount    Float
+  createdAt DateTime       @default(now())
+  order     order          @relation(fields: [orderId], references: [id], map: "Payment_orderId_fkey")
+}
+
+model product {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  categoryId  String
+  isAvailable Boolean     @default(true)
+  orderitem   orderitem[]
+  category    category    @relation(fields: [categoryId], references: [id], map: "Product_categoryId_fkey")
+
+  @@index([categoryId], map: "Product_categoryId_fkey")
+}
+
+model role {
+  id   String    @id @default(uuid())
+  role role_role @unique(map: "Role_role_key")
+  user user[]
+}
+
+model servicerequest {
+  id        String                @id @default(uuid())
+  tableId   String
+  type      String
+  status    servicerequest_status @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime
+  table     table                 @relation(fields: [tableId], references: [id], map: "ServiceRequest_tableId_fkey")
+
+  @@index([tableId], map: "ServiceRequest_tableId_fkey")
+}
+
+model table {
+  id             String           @id @default(uuid())
+  name           String           @unique(map: "Table_name_key")
+  status         table_status     @default(EMPTY)
+  token          String           @unique(map: "Table_token_key")
+  order          order[]
+  servicerequest servicerequest[]
+  tablesession   tablesession[]
+}
+
+model tablesession {
+  id          String              @id @default(uuid())
+  tableId     String
+  status      tablesession_status @default(ACTIVE)
+  createdAt   DateTime            @default(now())
+  expiresAt   DateTime
+  order       order?
+  table       table               @relation(fields: [tableId], references: [id], map: "TableSession_tableId_fkey")
+  usersession usersession[]
+
+  @@index([tableId], map: "TableSession_tableId_fkey")
+}
+
+model user {
+  id       String @id @default(uuid())
+  name     String
+  username String @unique(map: "User_username_key")
+  password String
+  roleId   String
+  role     role   @relation(fields: [roleId], references: [id], map: "User_roleId_fkey")
+
+  @@index([roleId], map: "User_roleId_fkey")
+}
+
+model usersession {
+  id             String       @id @default(uuid())
+  tableSessionId String
+  tablesession   tablesession @relation(fields: [tableSessionId], references: [id], map: "UserSession_tableSessionId_fkey")
+
+  @@index([tableSessionId], map: "UserSession_tableSessionId_fkey")
+}
+
+enum role_role {
   ADMIN
   STAFF
+  KITCHEN
 }
-enum TableStatus {
+
+enum table_status {
   EMPTY
   OCCUPIED
 }
-enum OrderStatus {
+
+enum tablesession_status {
+  ACTIVE
+  CLOSED
+}
+
+enum order_status {
   PENDING
   CONFIRMED
   PREPARING
@@ -24,125 +155,21 @@ enum OrderStatus {
   PAID
   CANCELLED
 }
-enum PaymentStatus {
+
+enum payment_status {
   PENDING
   SUCCESS
   FAILED
 }
 
-model Role {
-  id String @id @default(uuid())
-  role RoleName @unique
-
-  users User[]
+enum servicerequest_status {
+  PENDING
+  RESOLVED
 }
 
-model User{
-  id String @id @default(uuid())
-  name String
-  email String? @unique
-  password String
-  roleId String
-  role Role @relation(fields: [roleId], references: [id])
-}
-
-model Table {
-  id String @id @default(uuid())
-  name String @unique
-  status TableStatus @default(EMPTY)
-
-  sessions TableSession[]
-  orders Order[]
-}
-
-enum SessionStatus {
-  ACTIVE
-  CLOSED
-}
-
-model TableSession {
-  id String @id @default(uuid())
-  tableId String @unique
-  table Table @relation(fields: [tableId], references: [id])
-  status    SessionStatus @default(ACTIVE)
-
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-
-  userSession UserSession[]
-
-  @@unique([tableId, status])
-}
-
-model UserSession {
-  id String @id @default(uuid())
-  tableSessionId String
-  tableSession TableSession @relation(fields: [tableSessionId], references:[id])
-}
-
-model Category {
-  id String @id @default(uuid())
-  name String
-  parentId String?
-
-  parent Category? @relation("CategoryTree", fields: [parentId], references:[id])
-  children Category[] @relation("CategoryTree")
-
-  products Product[]
-}
-
-model Product {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  price       Float
-  image       String?
-
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-
-  isAvailable Boolean  @default(true)
-
-  orderItems  OrderItem[]
-}
-
-model Order {
-  id          String   @id @default(uuid())
-  tableId String 
-  table     Table       @relation(fields: [tableId], references: [id])
-
-  status    OrderStatus @default(PENDING)
-
-  total Float @default(0)
-
-  createdAt DateTime    @default(now())
-
-  items OrderItem[]
-  payment Payment?
-}
-
-model OrderItem {
-  id        String   @id @default(uuid())
-
-  order     Order    @relation(fields: [orderId], references: [id])
-  orderId   String
-
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-
-  quantity  Int     @default(1)
-  unitPrice Float
-}
-
-model Payment {
-  id String @id @default(uuid())
-
-  orderId String @unique
-  order     Order         @relation(fields: [orderId], references: [id])
-  method    String
-  status    PaymentStatus @default(PENDING)
-
-  amount    Float
-
-  createdAt DateTime      @default(now())
+enum orderitem_status {
+  PENDING
+  PREPARING
+  READY
+  OUT_OF_STOCK
 }

@@ -1,15 +1,26 @@
 import prisma from "../libs/prisma.js";
+
 const tableRepo = {
+  findAll: () => {
+    return prisma.table.findMany({
+      orderBy: { name: "asc" },
+    });
+  },
+
   findTableById: (tableId) => {
     return prisma.table.findUnique({
       where: { id: tableId },
     });
   },
 
-  updateTable: async (tableId, data) => {
+  create: (data) => {
+    return prisma.table.create({ data });
+  },
+
+  updateTable: (tableId, data) => {
     return prisma.table.update({
       where: { id: tableId },
-      data: data,
+      data,
     });
   },
 
@@ -18,6 +29,10 @@ const tableRepo = {
       where: { id: tableId },
       data: { status },
     });
+  },
+
+  delete: (tableId) => {
+    return prisma.table.delete({ where: { id: tableId } });
   },
 };
 

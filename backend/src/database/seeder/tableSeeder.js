@@ -1,4 +1,5 @@
 import prisma from "../../libs/prisma.js";
+import crypto from "crypto";
 
 async function tableSeeder() {
   const tables = [];
@@ -6,6 +7,7 @@ async function tableSeeder() {
   for (let i = 1; i <= 10; i++) {
     tables.push({
       name: `Table ${i}`,
+      token: `table_${i}_token_${crypto.randomUUID()}`,
     });
   }
 

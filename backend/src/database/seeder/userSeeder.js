@@ -10,25 +10,44 @@ async function userSeeder() {
     where: { role: "STAFF" },
   });
 
-  const password = await bcrypt.hash("123456", 10);
-
-  await prisma.user.createMany({
-    data: [
-      {
-        name: "Admin",
-        email: "admin@gmail.com",
-        password,
-        roleId: adminRole.id,
-      },
-      {
-        name: "Staff",
-        email: "staff@gmail.com",
-        password,
-        roleId: staffRole.id,
-      },
-    ],
-    skipDuplicates: true,
+  const kitchenRole = await prisma.role.findUnique({
+    where: { role: "KITCHEN" },
   });
+
+  const password = await bcrypt.hash("Admin@123", 10);
+
+  const users = [
+    {
+      name: "Admin",
+      username: "admin",
+      password,
+      roleId: adminRole.id,
+    },
+    {
+      name: "Staff",
+      username: "staff",
+      password,
+      roleId: staffRole.id,
+    },
+    {
+      name: "Kitchen",
+      username: "kitchen",
+      password,
+      roleId: kitchenRole.id,
+    },
+  ];
+
+  for (const user of users) {
+    await prisma.user.upsert({
+      where: { username: user.username },
+      update: {
+        password: user.password,
+        roleId: user.roleId,
+        name: user.name,
+      },
+      create: user,
+    });
+  }
 
   console.log("Seeded users");
 }

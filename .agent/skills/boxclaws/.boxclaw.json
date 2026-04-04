@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0",
+  "skill": {
+    "frontend-developer": {
+      "version": "1.0.0",
+      "installedAt": "2026-03-18T09:59:10.419Z"
+    },
+    "backend-developer": {
+      "version": "1.0.0",
+      "installedAt": "2026-03-18T10:00:18.082Z"
+    }
+  }
+}
