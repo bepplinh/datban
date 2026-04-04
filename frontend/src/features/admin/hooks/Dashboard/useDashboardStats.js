@@ -21,3 +21,10 @@ export const useDashboardSummary = () => {
     queryFn: dashboardService.getSummary,
   });
 };
+
+export const useRevenueChartData = (frequency = "month") => {
+  return useQuery({
+    queryKey: ["admin-revenue-chart", frequency],
+    queryFn: () => dashboardService.getRevenueChartData(frequency),
+  });
+};

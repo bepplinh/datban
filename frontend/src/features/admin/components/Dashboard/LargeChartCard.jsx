@@ -1,40 +1,107 @@
+import React, { useState } from "react";
+import { Area, Column } from "@ant-design/plots";
 import { formatCurrency } from "../../../../shared/utils/format";
+import { useRevenueChartData } from "../../hooks/Dashboard/useDashboardStats";
+import { Spin, Segmented } from "antd";
 
 const LargeChartCard = ({ totalRevenue }) => {
+  const [frequency, setFrequency] = useState("month");
+  const { data: chartResponse, isLoading } = useRevenueChartData(frequency);
+  const chartData = chartResponse?.data || [];
+
+  const isYearly = frequency === "year";
+
+  const config = {
+    data: chartData,
+    xField: "label",
+    yField: "revenue",
+    ...(isYearly ? { colorField: "year" } : {}),
+    axis: {
+      y: {
+        labelFormatter: (v) => {
+          if (v >= 1000000) return `${(v / 1000000).toFixed(1)}M`;
+          if (v >= 1000) return `${(v / 1000).toFixed(0)}K`;
+          return v;
+        },
+      },
+      x: {
+        labelSpacing: 4,
+        labelAutoRotate: true,
+        labelFormatter: (v) => {
+          if (!v) return "";
+          if (frequency === "month") return v;
+          if (frequency === "year") return v;
+          if (frequency === "week") {
+            const parts = v.split("-W");
+            return parts.length === 2 ? `Tuần ${parts[1]}` : v;
+          }
+          return v;
+        },
+      },
+    },
+    tooltip: {
+      channel: "y",
+      valueFormatter: (v) => formatCurrency(v),
+    },
+    animate: { enter: { type: "fadeIn" } },
+    ...(isYearly
+      ? {
+          legend: { position: "top" },
+          columnWidthRatio: 0.6,
+        }
+      : {
+          shapeField: "smooth",
+          style: {
+            fill: "linear-gradient(-90deg, #f5f3ff 0%, #7c3aed 100%)",
+            fillOpacity: 0.3,
+            stroke: "#7c3aed",
+            lineWidth: 2,
+          },
+        }),
+  };
+
   return (
-    <div className="lg:col-span-2 bg-white rounded-4xl p-8 shadow-sm border border-slate-100/60">
-      <div className="flex justify-between items-center mb-8">
+    <div className="lg:col-span-2 bg-white rounded-4xl p-8 shadow-sm border border-slate-100/60 transition-all duration-300 hover:shadow-md h-full flex flex-col">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <p className="text-sm text-slate-500 font-semibold mb-1 uppercase tracking-wider">TỔNG DOANH THU</p>
-          <h3 className="text-4xl font-extrabold text-slate-900 tracking-tight">{formatCurrency(totalRevenue)}</h3>
+          <p className="text-sm text-slate-500 font-bold mb-1 uppercase tracking-widest flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+            TỔNG DOANH THU
+          </p>
+          <h3 className="text-4xl font-black text-slate-900 tracking-tight">
+            {formatCurrency(totalRevenue)}
+          </h3>
         </div>
-        <button className="px-5 py-2.5 bg-slate-50 text-slate-600 text-sm font-bold rounded-2xl hover:bg-slate-100 hover:text-indigo-600 transition-all duration-200">
-          This Year
-        </button>
+        <Segmented
+          options={[
+            { label: "Hàng tuần", value: "week" },
+            { label: "Hàng tháng", value: "month" },
+            { label: "Hàng năm", value: "year" },
+          ]}
+          value={frequency}
+          onChange={setFrequency}
+          className="p-1 bg-slate-50 rounded-xl"
+        />
       </div>
-      
-      <div className="relative h-64 w-full flex items-end justify-between gap-3 pt-10">
-        {[40, 70, 45, 90, 65, 55, 80, 50, 60].map((h, i) => (
-          <div key={i} className="w-full flex flex-col items-center gap-3 group">
-            <div className="w-full h-full flex flex-col justify-end">
-              <div 
-                className="w-full bg-indigo-50 rounded-xl relative group-hover:bg-indigo-400 group-hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] transition-all duration-300 ease-out cursor-pointer"
-                style={{ height: `${h}%` }}
-              >
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-slate-800 text-white text-xs font-bold py-1.5 px-3 rounded-lg whitespace-nowrap transition-all duration-200 shadow-lg translate-y-2 group-hover:-translate-y-1">
-                  {formatCurrency(h * 8.5)}
-                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
-                </div>
-              </div>
-            </div>
-            <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">
-              {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'][i]}
-            </span>
+
+      <div className="flex-1 min-h-[300px] w-full relative mt-4">
+        {isLoading ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10 rounded-xl">
+            <Spin size="large" />
           </div>
-        ))}
+        ) : chartData.length > 0 ? (
+          isYearly ? (
+            <Column {...config} />
+          ) : (
+            <Area {...config} />
+          )
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-slate-400 font-medium">
+            Không có dữ liệu doanh thu
+          </div>
+        )}
       </div>
     </div>
   );
 };
-
 export default LargeChartCard;

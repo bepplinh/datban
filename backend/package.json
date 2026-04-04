@@ -20,6 +20,7 @@
   },
   "scripts": {
     "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
     "seedAll": "npx prisma db push --force-reset && nodemon prisma/seeder.js"
   },
   "devDependencies": {

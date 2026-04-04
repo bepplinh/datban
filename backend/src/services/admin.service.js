@@ -205,11 +205,72 @@ export const adminService = {
     });
 
     return {
-      revenueToday: revenueToday._sum.total || 0,
-      ordersToday: revenueToday._count.id || 0,
-      activeTables,
-      totalTables,
       pendingRequests,
     };
+  },
+
+  getRevenueChartData: async (frequency = "month") => {
+    const orders = await prisma.order.findMany({
+      where: { status: "PAID" },
+      select: { total: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (frequency === "year") {
+      const months = Array.from(
+        { length: 12 },
+        (_, i) => `Tháng ${(i + 1).toString().padStart(2, "0")}`,
+      );
+      const dataMap = new Map();
+
+      orders.forEach((order) => {
+        const date = new Date(order.createdAt);
+        const year = date.getFullYear().toString();
+        const monthIndex = date.getMonth();
+        const label = months[monthIndex];
+        const key = `${year}-${label}`;
+        dataMap.set(key, (dataMap.get(key) || 0) + order.total);
+      });
+
+      const result = [];
+      dataMap.forEach((revenue, key) => {
+        const [year, label] = key.split("-");
+        result.push({ label, year, revenue });
+      });
+
+      // Sort by month label (Tháng 01, Tháng 02...)
+      return result.sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    const groupedData = {};
+
+    orders.forEach((order) => {
+      let label;
+      const date = new Date(order.createdAt);
+      if (frequency === "month") {
+        label = `${date.getFullYear()}-${(date.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}`;
+      } else if (frequency === "week") {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+        const yearStart = new Date(d.getFullYear(), 0, 1);
+        const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+        label = `${d.getFullYear()}-W${weekNo.toString().padStart(2, "0")}`;
+      } else {
+        label = date.toISOString().split("T")[0];
+      }
+
+      if (!groupedData[label]) {
+        groupedData[label] = 0;
+      }
+      groupedData[label] += order.total;
+    });
+
+    return Object.entries(groupedData).map(([label, revenue]) => ({
+      label,
+      revenue,
+    }));
   },
 };

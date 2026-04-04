@@ -29,4 +29,14 @@ export const statsController = {
       next(err);
     }
   },
+
+  getRevenueChartData: async (req, res, next) => {
+    try {
+      const { frequency } = req.query; // 'day' or 'month'
+      const data = await adminService.getRevenueChartData(frequency);
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  },
 };

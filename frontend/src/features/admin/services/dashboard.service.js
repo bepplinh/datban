@@ -15,4 +15,10 @@ export const dashboardService = {
     const res = await api.get("/admin/stats/summary");
     return res;
   },
+  getRevenueChartData: async (frequency) => {
+    const res = await api.get("/admin/stats/revenue-chart", {
+      params: { frequency },
+    });
+    return res;
+  },
 };

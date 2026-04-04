@@ -92,6 +92,7 @@ adminRouter.delete("/staff/:id", staffManagementController.deleteStaff);
 // ─── Statistics ──────────────────────────────────
 adminRouter.get("/stats/summary", statsController.getDashboardSummary);
 adminRouter.get("/stats/revenue", statsController.getRevenueStats);
+adminRouter.get("/stats/revenue-chart", statsController.getRevenueChartData);
 adminRouter.get("/stats/best-selling", statsController.getBestSellingProducts);
 
 // ─── Orders/Invoices ─────────────────────────────

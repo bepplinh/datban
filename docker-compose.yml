@@ -1,0 +1,25 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: datban-backend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    # We mount the prisma directory if we want to run migrations from outside,
+    # but for production it's better to keep it internal or use a helper container.
+    environment:
+      - NODE_ENV=production
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+    networks:
+      - datban-network
+
+networks:
+  datban-network:
+    driver: bridge
