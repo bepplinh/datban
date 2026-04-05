@@ -59,7 +59,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           script: |
             # 1. Update Code (Chỉ lấy folder backend và docker-compose)
-            cd ~/datban
+            cd /var/www/shoppingcar
             git pull origin main
 
             # 2. Build và Restart container Backend
@@ -70,4 +70,4 @@ jobs:
             docker image prune -f
 
             # 4. Kiểm tra logs nhanh
-            docker ps | grep datban-backend
+            docker ps | grep shoppingcar-backend
