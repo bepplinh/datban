@@ -42,7 +42,7 @@ jobs:
       - name: Frontend — Install & Build Check
         run: |
           cd frontend
-          npm ci
+          npm ci --legacy-peer-deps
           npm run build
 
   # ─── CD: Build and Push Images to GHCR ─────────────────
