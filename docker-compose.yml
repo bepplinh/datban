@@ -1,18 +1,19 @@
 services:
   backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/bepplinh/datban/backend:latest
     container_name: datban-backend
     restart: always
     ports:
       - "3000:3000"
     env_file:
       - ./backend/.env
-    # We mount the prisma directory if we want to run migrations from outside,
-    # but for production it's better to keep it internal or use a helper container.
     environment:
       - NODE_ENV=production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     deploy:
       resources:
         limits:
