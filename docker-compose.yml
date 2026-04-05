@@ -21,6 +21,24 @@ services:
     networks:
       - datban-network
 
+  frontend:
+    image: ghcr.io/bepplinh/datban/frontend:latest
+    container_name: datban-frontend
+    restart: always
+    ports:
+      - "8080:80"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    networks:
+      - datban-network
+
 networks:
   datban-network:
     driver: bridge
