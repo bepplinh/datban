@@ -1,25 +1,22 @@
-import { ZodError } from "zod"
+import { ZodError } from "zod";
 
 export const validateBodyRequest = (schema) => async (req, res, next) => {
   try {
+    const data = await schema.parseAsync(req.body);
+    req.body = data;
 
-    const data = await schema.parseAsync(req.body)
-
-    req.body = data
-
-    next()
-
+    next();
   } catch (error) {
-    console.log(error)
+    console.error("Validation error:", error);
     if (error instanceof ZodError) {
-      const errors = error.issues.map(item => ({
+      const errors = error.issues.map((item) => ({
         field: item.path[0],
-        message: item.message
-      }))
+        message: item.message,
+      }));
 
-      return res.status(400).json({ errors })
+      return res.status(400).json({ errors });
     }
 
-    next(error)
+    next(error);
   }
-}
+};

@@ -173,3 +173,23 @@ enum orderitem_status {
   READY
   OUT_OF_STOCK
 }
+
+model reservation {
+  id           String             @id @default(uuid())
+  customerName String
+  phoneNumber  String
+  partySize    Int
+  date         DateTime           @db.Date
+  time         String
+  notes        String?
+  status       reservation_status @default(PENDING)
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+}
+
+enum reservation_status {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}

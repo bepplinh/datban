@@ -114,12 +114,13 @@ export const adminService = {
     try {
       return await userRepo.create({
         name: data.name,
-        email: data.email,
+        username: data.username,
         password: hashedPassword,
         roleId: staffRole.id,
       });
     } catch (err) {
-      if (err.code === "P2002") throw new ConflictError("Email already exists");
+      if (err.code === "P2002")
+        throw new ConflictError("Username already exists");
       throw err;
     }
   },
@@ -205,6 +206,10 @@ export const adminService = {
     });
 
     return {
+      revenueToday: revenueToday._sum.total || 0,
+      ordersToday: revenueToday._count.id || 0,
+      totalTables,
+      activeTables,
       pendingRequests,
     };
   },

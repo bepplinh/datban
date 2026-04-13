@@ -27,19 +27,7 @@ async function orderSeeder() {
     `Seeding from ${startDate.toDateString()} to ${endDate.toDateString()}...`,
   );
 
-  const statuses = [
-    "PAID",
-    "PAID",
-    "PAID",
-    "PAID",
-    "PAID",
-    "PAID",
-    "PAID",
-    "PAID",
-    "CANCELLED",
-    "SERVED",
-    "READY",
-  ];
+  const statuses = ["PAID"];
   const paymentMethods = ["Tiền mặt", "Chuyển khoản", "Thẻ tín dụng"];
 
   // Helper to get random item from array

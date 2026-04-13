@@ -1,4 +1,6 @@
-export const checkTableSession = (req, res, next) => {
+import prisma from "../libs/prisma.js";
+
+export const checkTableSession = async (req, res, next) => {
   const tableSessionId =
     req.cookies.tableSessionId || req.headers["x-table-session-id"];
 
@@ -8,7 +10,20 @@ export const checkTableSession = (req, res, next) => {
     });
   }
 
-  req.tableSessionId = tableSessionId;
+  try {
+    const session = await prisma.tablesession.findUnique({
+      where: { id: tableSessionId },
+    });
 
-  next();
+    if (!session || session.status !== "ACTIVE") {
+      return res.status(401).json({
+        message: "Table session is invalid or expired",
+      });
+    }
+
+    req.tableSessionId = tableSessionId;
+    next();
+  } catch (err) {
+    next(err);
+  }
 };

@@ -40,6 +40,10 @@ export const socketService = {
   },
 
   // Specialized methods for Order Flow
+  emitNewReservation: (reservation) => {
+    socketService.emitToRoom("staff-room", "new_reservation", reservation);
+  },
+
   emitNewOrder: (order) => {
     socketService.emitToRoom("staff-room", "new_order", order);
     socketService.emitToRoom("kitchen-room", "new_order", order);
@@ -59,5 +63,12 @@ export const socketService = {
 
   emitDelivered: (tableId, order) => {
     socketService.emitToRoom(`table-${tableId}`, "order_delivered", order);
+  },
+
+  emitTableStatusUpdate: (tableId, status) => {
+    socketService.emitToRoom("staff-room", "table_status_updated", {
+      tableId,
+      status,
+    });
   },
 };

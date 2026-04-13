@@ -101,7 +101,16 @@ export const orderRepo = {
           },
         },
         table: { select: { id: true, name: true } },
-        payment: true,
+        payment: {
+          select: {
+            id: true,
+            orderId: true,
+            method: true,
+            status: true,
+            amount: true,
+            createdAt: true,
+          },
+        },
       },
     });
   },
@@ -156,7 +165,16 @@ export const orderRepo = {
     return prisma.order.findUnique({
       where: { orderNumber: Number(orderNumber) },
       include: {
-        payment: true,
+        payment: {
+          select: {
+            id: true,
+            orderId: true,
+            method: true,
+            status: true,
+            amount: true,
+            createdAt: true,
+          },
+        },
         table: true,
       },
     });

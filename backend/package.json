@@ -4,26 +4,34 @@
     "@payos/node": "^2.0.5",
     "@prisma/client": "^6.19.2",
     "bcrypt": "^5.1.1",
+    "bullmq": "^5.73.3",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.3.2",
     "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
-    "nodemon": "^3.1.14",
     "qrcode": "^1.5.4",
     "redis": "^5.11.0",
     "socket.io": "^4.8.3",
+    "supertest": "^7.2.2",
     "zod": "^4.3.6"
   },
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seedAll": "npx prisma db push --force-reset && nodemon prisma/seeder.js"
+    "seedAll": "npx prisma db push --force-reset && nodemon prisma/seeder.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
-    "prisma": "^6.19.2"
+    "nodemon": "^3.1.14",
+    "prisma": "^6.19.2",
+    "vitest": "^4.1.4"
   }
 }

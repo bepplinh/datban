@@ -5,5 +5,6 @@ const payosRouter = express.Router();
 
 payosRouter.post("/create-payment-link", payosController.createPaymentLink);
 payosRouter.post("/webhook-verify", payosController.webhookVerify);
+payosRouter.get("/sync-status/:orderCode", payosController.syncStatus);
 
 export default payosRouter;

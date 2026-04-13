@@ -74,41 +74,49 @@ export const staffService = {
   },
 
   getTables: async () => {
-    const tables = await tableRepo.findAll();
-    return Promise.all(
-      tables.map(async (table) => {
-        const activeSession = await sessionRepo.findActiveSession(table.id);
-        let orderStatus = null;
-        let total = 0;
-        let sessionTime = null;
+    const tables = await prisma.table.findMany({
+      include: {
+        tablesession: {
+          where: { status: "ACTIVE" },
+          take: 1,
+          include: {
+            order: {
+              select: { status: true, total: true },
+            },
+          },
+        },
+      },
+      orderBy: { name: "asc" },
+    });
 
-        if (activeSession) {
-          const sessionStart = new Date(activeSession.createdAt);
-          const diffMs = Date.now() - sessionStart.getTime();
-          const diffMins = Math.round(diffMs / 60000);
-          sessionTime = `${diffMins} phút`;
+    return tables.map((table) => {
+      const activeSession = table.tablesession[0] || null;
+      let orderStatus = null;
+      let total = 0;
+      let sessionTime = null;
 
-          const order = await orderRepo.findOrderByTableSessionId(
-            activeSession.id,
-          );
-          if (order) {
-            orderStatus = order.status;
-            total = order.total;
-          }
+      if (activeSession) {
+        const diffMs = Date.now() - new Date(activeSession.createdAt).getTime();
+        const diffMins = Math.round(diffMs / 60000);
+        sessionTime = `${diffMins} phút`;
+
+        if (activeSession.order) {
+          orderStatus = activeSession.order.status;
+          total = activeSession.order.total;
         }
+      }
 
-        return {
-          id: table.id,
-          name: table.name,
-          status: table.status,
-          orderStatus,
-          sessionTime,
-          total,
-          hasCall: false,
-          hasPaymentRequest: false,
-        };
-      }),
-    );
+      return {
+        id: table.id,
+        name: table.name,
+        status: table.status,
+        orderStatus,
+        sessionTime,
+        total,
+        hasCall: false,
+        hasPaymentRequest: false,
+      };
+    });
   },
 
   getOrdersByTable: async (tableId) => {
@@ -131,6 +139,9 @@ export const staffService = {
 
     const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000);
     const session = await sessionRepo.createTableSession(tableId, expiresAt);
+
+    // Realtime update for table status
+    socketService.emitTableStatusUpdate(tableId, "OCCUPIED");
 
     return session;
   },
@@ -172,6 +183,9 @@ export const staffService = {
     }
 
     await tableRepo.updateTableStatus(tableId, "EMPTY");
+
+    // Realtime update for table status
+    socketService.emitTableStatusUpdate(tableId, "EMPTY");
 
     return { message: "Table closed successfully" };
   },

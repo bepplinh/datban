@@ -16,8 +16,11 @@ export const errorHandler = (err, req, res, next) => {
   res.status(500).json({
     error: {
       code: "INTERNAL_ERROR",
-      message: err.message || "Something went wrong",
-      stack: err.stack,
+      message:
+        process.env.NODE_ENV === "production"
+          ? "Something went wrong"
+          : err.message || "Something went wrong",
+      ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
     },
   });
 };

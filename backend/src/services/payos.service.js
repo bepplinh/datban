@@ -1,12 +1,15 @@
 import payOS from "../config/payos.js";
 import { orderRepo } from "../repositories/order.repository.js";
 import prisma from "../libs/prisma.js";
+import { socketService } from "./socket.service.js";
+import { orderQueue } from "../queues/index.js";
+import { NotFoundError, ConflictError } from "../utils/AppError.js";
 
 const payosService = {
   createPaymentLink: async (orderId) => {
     const order = await orderRepo.findById(orderId);
     if (!order) {
-      throw new Error("Order not found");
+      throw new NotFoundError("Order not found");
     }
 
     const orderCode = order.orderNumber;
@@ -32,13 +35,24 @@ const payosService = {
 
       return paymentLink;
     } catch (err) {
+      if (
+        err.code === "231" ||
+        (err.message && err.message.includes("Đơn thanh toán đã tồn tại"))
+      ) {
+        const paymentInfo = await payOS.paymentRequests.get(orderCode);
+        const paymentData = {
+          ...paymentInfo,
+          checkoutUrl: `https://pay.payos.vn/web/${orderId}`,
+        };
+        console.log(paymentData);
+        return paymentData;
+      }
       throw err;
     }
   },
 
   verifyWebhook: (webhookData) => {
     try {
-      // Allow simulation for testing purposes
       if (webhookData.isTest === true) {
         console.log("Simulating webhook (signature bypass)");
         return webhookData;
@@ -46,59 +60,69 @@ const payosService = {
       return payOS.verifyPaymentWebhookData(webhookData);
     } catch (error) {
       console.error("Webhook Verification Error:", error);
-      throw new Error("Invalid webhook signature");
+      throw new ConflictError("Invalid webhook signature");
     }
   },
 
   handlePaymentSuccess: async (orderCode) => {
     const order = await orderRepo.findByOrderNumber(orderCode);
     if (!order) {
-      throw new Error(`Order not found with code: ${orderCode}`);
+      throw new NotFoundError(`Order not found with code: ${orderCode}`);
     }
+    if (order.status === "PAID") return order;
 
-    const operations = [
-      prisma.order.update({
-        where: { id: order.id },
-        data: { status: "PAID" },
-      }),
+    await orderQueue.add("order.paid", order, {
+      attempts: 3,
+      backoff: {
+        type: "exponential",
+        delay: 1000,
+      },
+    });
 
-      prisma.tablesession.update({
-        where: { id: order.tableSessionId },
-        data: { status: "CLOSED" },
-      }),
-
-      prisma.table.update({
-        where: { id: order.tableId },
-        data: { status: "EMPTY" },
-      }),
-    ];
-
-    // 4. Handle payment record (update if exists, create if not)
-    if (order.payment) {
-      operations.push(
-        prisma.payment.update({
-          where: { orderId: order.id },
-          data: { status: "SUCCESS" },
-        }),
-      );
-    } else {
-      operations.push(
-        prisma.payment.create({
-          data: {
-            orderId: order.id,
-            amount: Number(order.total),
-            method: "PayOS",
-            status: "SUCCESS",
-          },
-        }),
-      );
-    }
-
-    await prisma.$transaction(operations);
-    console.log(
-      `Payment processed successfully for order: ${order.orderNumber}`,
-    );
     return order;
+  },
+
+  handlePaymentCancellation: async (orderCode) => {
+    const order = await orderRepo.findByOrderNumber(orderCode);
+    if (!order) {
+      throw new NotFoundError(`Order not found with code: ${orderCode}`);
+    }
+
+    if (["PAID", "CANCELLED"].includes(order.status)) return order;
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: "CANCELLED" },
+    });
+
+    if (order.payment) {
+      await prisma.payment.update({
+        where: { orderId: order.id },
+        data: { status: "CANCELLED" },
+      });
+    }
+
+    return order;
+  },
+
+  syncPaymentStatus: async (orderCode) => {
+    try {
+      const paymentInfo = await payOS.paymentRequests.get(orderCode);
+      console.log(
+        `Syncing payment status for #${orderCode}: ${paymentInfo.status}`,
+      );
+
+      if (paymentInfo.status === "PAID") {
+        return await payosService.handlePaymentSuccess(orderCode);
+      } else if (["CANCELLED", "EXPIRED"].includes(paymentInfo.status)) {
+        return await payosService.handlePaymentCancellation(orderCode);
+      }
+
+      return { status: paymentInfo.status, orderCode };
+    } catch (error) {
+      console.error(`Sync Error for #${orderCode}:`, error.message);
+      throw error;
+    }
   },
 };
 
