@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
+import { ClipboardList, Settings } from "lucide-react";
 import useAuthStore from "@/features/auth/store/useAuthStore";
 import HomePage from "@/features/landing/pages/HomePage";
 import Menu from "@/features/menu/pages/Menu";
@@ -27,6 +28,7 @@ import TableManagement from "./features/admin/pages/TableManagement";
 import OrderManagement from "./features/admin/pages/OrderManagement";
 import AdminLogin from "./features/admin/pages/AdminLogin";
 import AdminGuard from "./shared/components/AdminGuard";
+import ReservationManagement from "@/features/staff/pages/ReservationManagement";
 
 function App() {
   const { checkAuth } = useAuthStore();
@@ -66,13 +68,26 @@ function App() {
         <Route path="tables" element={<POSDashboardPage />} />
         <Route path="tables/:tableId" element={<TableDetailPage />} />
         <Route path="tables/:tableId/menu" element={<StaffOrderMenu />} />
+        <Route path="reservations" element={<ReservationManagement />} />
         <Route
           path="orders"
-          element={<div className="p-4">Quản lý Đơn Hàng (Đang xây dựng)</div>}
+          element={
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+              <ClipboardList className="w-16 h-16 text-gray-400 mb-4" />
+              <h2 className="text-xl font-semibold text-gray-600 mb-2">Quản lý Đơn Hàng</h2>
+              <p className="text-gray-400">Tính năng đang được phát triển</p>
+            </div>
+          }
         />
         <Route
           path="settings"
-          element={<div className="p-4">Cài đặt (Đang xây dựng)</div>}
+          element={
+            <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+              <Settings className="w-16 h-16 text-gray-400 mb-4" />
+              <h2 className="text-xl font-semibold text-gray-600 mb-2">Cài đặt</h2>
+              <p className="text-gray-400">Tính năng đang được phát triển</p>
+            </div>
+          }
         />
         <Route path="notifications" element={<NotificationsPage />} />
         

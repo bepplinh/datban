@@ -6,20 +6,33 @@ import PaymentMethod from "./StaffPayment/PaymentMethod";
 import OrderSummary from "./StaffPayment/OrderSummary";
 import Footer from "./StaffPayment/Footer";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTableOrders } from "../hooks/useTableOrders";
 import { useTableStore } from "../../table-session/store/useTableStore";
+import { toast } from "sonner";
 
 function StaffPayment() {
   const tableId = useTableStore(state => state.tableId);
   const { orders, isLoading } = useTableOrders(tableId);
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+  const clearTableInfo = useTableStore(state => state.clearTableInfo);
+
   useEffect(() => {
-    if (!isLoading && !tableId) {
+    const status = searchParams.get("status");
+    if (status === "PAID") {
+      toast.success("Thanh toán thành công!");
+      clearTableInfo();
       navigate("/staff/tables");
     }
-  }, [tableId, isLoading, navigate]);
+  }, [searchParams, clearTableInfo, navigate]);
+
+  useEffect(() => {
+    if (!isLoading && !tableId && !searchParams.get("status")) {
+      navigate("/staff/tables");
+    }
+  }, [tableId, isLoading, navigate, searchParams]);
 
   const onSubmit = () => {
     console.log("Submit clicked");

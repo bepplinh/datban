@@ -1,6 +1,7 @@
 import React from "react";
 import ProductCard from "./ProductCard";
 import { Search } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 
 const ProductGrid = ({ products, API_BASE_URL, onReset }) => {
   if (products.length === 0) {
@@ -22,9 +23,11 @@ const ProductGrid = ({ products, API_BASE_URL, onReset }) => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} API_BASE_URL={API_BASE_URL} />
-      ))}
+      <AnimatePresence mode="popLayout">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} API_BASE_URL={API_BASE_URL} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 };

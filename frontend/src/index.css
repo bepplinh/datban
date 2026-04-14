@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -9,6 +10,7 @@
   --color-card-bg: #ffffff;
 
   --font-lexend: "Be Vietnam Pro", sans-serif;
+  --font-outfit: "Outfit", sans-serif;
 }
 
 @layer base {
@@ -83,6 +85,10 @@
   .no-scrollbar {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+  }
+
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
   }
 }
 

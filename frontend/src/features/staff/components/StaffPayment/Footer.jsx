@@ -5,6 +5,7 @@ import payosService from "../../services/payosService";
 import { useTableStore } from "../../../table-session/store/useTableStore";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/shared/utils/format";
+import { toast } from "sonner";
 
 function Footer({ total = 0 }) {
   const paymentMethod = useStaffPayment((state) => state.paymentMethod);
@@ -20,12 +21,14 @@ function Footer({ total = 0 }) {
     embedded: false,
     onSuccess: (event) => {
       console.log("PayOS: Thanh toán thành công:", event);
+      toast.success("Thanh toán thành công!");
       clearTableInfo();
       document.getElementById("payos-checkout").innerHTML = "";
       navigate("/staff/tables");
     },
     onCancel: (event) => {
       console.log("PayOS: Người dùng hủy thanh toán:", event);
+      toast.warning("Đã hủy thanh toán")
       document.getElementById("payos-checkout").innerHTML = "";
     },
     onExit: (event) => {

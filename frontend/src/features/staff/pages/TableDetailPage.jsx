@@ -40,8 +40,6 @@ export default function TableDetailPage() {
 
   const setTableInfo = useTableStore(state => state.setTableInfo);
   const handleCloseTable = async () => {
-    // We don't close the table yet, just set the info and navigate to payment
-    // The session remains active so the payment screen can fetch the orders
     setTableInfo(tableId, "Bàn " + tableId);
     clearCart(tableId);
     setShowConfirm(false);

@@ -62,11 +62,16 @@ export function useTables() {
       });
     });
 
+    socket.on("table_status_updated", () => {
+      queryClient.invalidateQueries({ queryKey: tableQueryKeys.tables() });
+    });
+
     return () => {
       socket.off("new_order", handleNewOrder);
       socket.off("dish_ready", handleDishReady);
       socket.off("new_service_request", handleServiceRequest);
       socket.off("service_request_resolved");
+      socket.off("table_status_updated");
     };
   }, [queryClient]);
 

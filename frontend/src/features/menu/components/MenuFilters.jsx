@@ -1,5 +1,6 @@
 import React from "react";
 import { Search, Filter, ArrowUpDown, DollarSign } from "lucide-react";
+import { motion } from "framer-motion";
 
 const MenuFilters = ({ 
   searchTerm, setSearchTerm, 
@@ -9,7 +10,12 @@ const MenuFilters = ({
   categoryOptions, maxPossiblePrice
 }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-12 border border-gray-100">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.1 }}
+      className="glass-panel rounded-2xl shadow-xl p-6 md:p-8 mb-12"
+    >
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         
         {/* 1. Search */}
@@ -111,7 +117,7 @@ const MenuFilters = ({
           </button>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

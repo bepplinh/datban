@@ -20,6 +20,22 @@ services:
           memory: 512M
     networks:
       - datban-network
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    container_name: datban-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - datban-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     image: ghcr.io/bepplinh/datban/frontend:latest

@@ -1,8 +1,16 @@
 import React from "react";
 import { formatCurrency } from "@/shared/utils/format";
+import { motion } from "framer-motion";
 
 const ProductCard = ({ product, API_BASE_URL }) => (
-  <div className="card group flex flex-col p-4">
+  <motion.div 
+    layout
+    initial={{ opacity: 0, scale: 0.9 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.9 }}
+    transition={{ duration: 0.3 }}
+    className="card group flex flex-col p-4 bg-white hover:shadow-2xl"
+  >
     {/* Image */}
     <div className="relative overflow-hidden rounded-xl mb-4 aspect-[4/3] bg-gray-100">
       {product.image ? (
@@ -50,7 +58,7 @@ const ProductCard = ({ product, API_BASE_URL }) => (
         </button>
       </div>
     </div>
-  </div>
+  </motion.div>
 );
 
 export default ProductCard;

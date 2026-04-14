@@ -1,71 +1,45 @@
-const orders = [
-  {
-    id: "o1",
-    userId: "u1",
-    status: "completed",
-    createdAt: "2026-04-01T10:00:00Z",
-    items: [
-      { id: "oi1", productId: "p1", name: "Burger", price: 5, quantity: 2 },
-      { id: "oi2", productId: "p2", name: "Coke", price: 2, quantity: 1 },
-    ],
-  },
-  {
-    id: "o2",
-    userId: "u2",
-    status: "pending",
-    createdAt: "2026-04-01T11:00:00Z",
-    items: [
-      { id: "oi3", productId: "p1", name: "Burger", price: 5, quantity: 1 },
-      { id: "oi4", productId: "p3", name: "Pizza", price: 8, quantity: 1 },
-    ],
-  },
-  {
-    id: "o3",
-    userId: "u1",
-    status: "completed",
-    createdAt: "2026-04-02T09:30:00Z",
-    items: [
-      { id: "oi5", productId: "p2", name: "Coke", price: 2, quantity: 3 },
-      { id: "oi6", productId: "p4", name: "Fries", price: 3, quantity: 2 },
-    ],
-  },
-  {
-    id: "o4",
-    userId: "u3",
-    status: "cancelled",
-    createdAt: "2026-04-02T12:00:00Z",
-    items: [
-      { id: "oi7", productId: "p3", name: "Pizza", price: 8, quantity: 2 },
-    ],
-  },
-  {
-    id: "o5",
-    userId: "u2",
-    status: "completed",
-    createdAt: "2026-04-02T13:15:00Z",
-    items: [
-      { id: "oi8", productId: "p1", name: "Burger", price: 5, quantity: 3 },
-      { id: "oi9", productId: "p4", name: "Fries", price: 3, quantity: 1 },
-    ],
-  },
-];
+import React, { useState, useEffect } from 'react';
 
-function Test() {
-  const totalRevenue = orders.reduce((sum, order) => {
-    const orderTotal = order.items.reduce(
-      (s, item) => s + item.quantity * item.price,
-      0,
-    );
-    return sum + orderTotal;
-  }, 0);
+const CountdownTimer = ({ initialSeconds = 10 }) => {
+  const [seconds, setSeconds] = useState(initialSeconds);
+  const [isActive, setIsActive] = useState(false);
 
-  console.log(totalRevenue);
+  useEffect(() => {
+    let interval = null;
+
+    if (isActive && seconds > 0) {
+      interval = setInterval(() => {
+        setSeconds((prevSeconds) => prevSeconds - 1);
+      }, 1000);
+    } else if (seconds === 0) {
+      clearInterval(interval);
+      alert("Hết giờ!");
+      setIsActive(false);
+    }
+
+    return () => clearInterval(interval);
+  }, [isActive, seconds]);
+
+  // Hàm định dạng thời gian
+  const formatTime = (totalSeconds) => {
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
 
   return (
-    <div>
-      <h1>Test</h1>
+    <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <h1>{formatTime(seconds)}</h1>
+      <button onClick={() => setIsActive(!isActive)}>
+        {isActive ? 'Tạm dừng' : 'Bắt đầu'}
+      </button>
+      <button onClick={() => { setSeconds(initialSeconds); setIsActive(false); }}>
+        Đặt lại
+      </button>
     </div>
   );
-}
+};
 
-export default Test;
+export default CountdownTimer;
