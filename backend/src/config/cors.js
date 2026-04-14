@@ -1,9 +1,13 @@
+const baseFrontendUrl = process.env.FRONTEND_URL;
 const allowedOrigins = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "https://shoppingcar.io.vn",
   "https://www.shoppingcar.io.vn",
-  process.env.FRONTEND_URL,
+  baseFrontendUrl,
+  baseFrontendUrl?.endsWith("/")
+    ? baseFrontendUrl.slice(0, -1)
+    : `${baseFrontendUrl}/`,
 ].filter(Boolean);
 
 const corsOptions = {
