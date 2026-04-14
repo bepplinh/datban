@@ -9,13 +9,13 @@ import routes from "./routes/index.js";
 const app = express();
 
 // ─── Global Middleware ───────────────────────────
+app.use(cors(corsOptions));
 app.use(
   helmet({
     crossOriginResourcePolicy: false,
   }),
 );
 app.use(express.json());
-app.use(cors(corsOptions));
 app.use(cookieParser());
 
 // ─── API Routes ──────────────────────────────────

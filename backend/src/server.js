@@ -4,7 +4,9 @@ import app from "./app.js";
 import { initSocket } from "./config/socket.js";
 
 // Init env variables
-dotenv.config();
+dotenv.config({
+  path: process.env.NODE_ENV === "production" ? ".env.production" : ".env",
+});
 
 // Workers
 import "./workers/order.worker.js";
