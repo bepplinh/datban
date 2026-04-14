@@ -78,7 +78,7 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.REPO }}/${{ matrix.image }}:latest
           build-args: |
-            VITE_API_URL=${{ matrix.image == 'frontend' && 'https://api.shoppingcar.io.vn/api' || '' }}
+            VITE_API_URL=${{ matrix.image == 'frontend' && 'https://shoppingcar.io.vn/api' || '' }}
 
   # ─── CD: Deploy to VPS ─────────────────────────────────
   deploy:
