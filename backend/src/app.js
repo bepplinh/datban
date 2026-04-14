@@ -8,6 +8,8 @@ import routes from "./routes/index.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 // ─── Global Middleware ───────────────────────────
 app.use(cors(corsOptions));
 app.use(
