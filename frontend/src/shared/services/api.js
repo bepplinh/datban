@@ -5,7 +5,6 @@ const getBaseURL = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }
-  // Fallback to localhost for development
   return "http://localhost:3000/api";
 };
 
@@ -17,10 +16,8 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add access token to headers
 api.interceptors.request.use(
   (config) => {
-    // Get token from Zustand state instead of localStorage
     const token = useAuthStore.getState().accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

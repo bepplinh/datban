@@ -7,7 +7,7 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 // Add variants for each origin (with/without trailing slash)
-const finalAllowedOrigins = [];
+export const finalAllowedOrigins = [];
 allowedOrigins.forEach((origin) => {
   const clean = origin.endsWith("/") ? origin.slice(0, -1) : origin;
   finalAllowedOrigins.push(clean);
@@ -16,6 +16,7 @@ allowedOrigins.forEach((origin) => {
 
 const corsOptions = {
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin || finalAllowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
