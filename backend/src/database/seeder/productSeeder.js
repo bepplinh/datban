@@ -1,4 +1,17 @@
 import prisma from "../../libs/prisma.js";
+import cloudinary from "../../config/cloudinary.js";
+
+const slugify = (text) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+};
 
 async function productSeeder() {
   // Fetch required categories for linkage
@@ -355,6 +368,41 @@ async function productSeeder() {
         "Canh chua, Thịt kho tiêu, Gà xé phay, Rau luộc kho quẹt dư dả cho nhóm bạn.",
     },
   ];
+
+  console.log("Fetching Cloudinary images for mapping...");
+  const cloudinaryResources = await cloudinary.api.resources({
+    type: "upload",
+    prefix: "products/",
+    max_results: 500,
+  });
+
+  const imageMap = {};
+  cloudinaryResources.resources.forEach((res) => {
+    // Extract public_id without folder prefix
+    const nameOnly = res.public_id.replace("products/", "");
+    imageMap[nameOnly] = res.public_id;
+  });
+
+  // Assign images to productData if match found
+  productData.forEach((product) => {
+    const slug = slugify(product.name);
+    if (imageMap[slug]) {
+      product.image = imageMap[slug];
+      console.log(`- Mapped image for: ${product.name} -> ${imageMap[slug]}`);
+    } else {
+      // Manual mappings for demonstration
+      if (product.name === "Súp Cua Măng Tây") {
+        product.image = "products/ylpaksiqbyukzan23nmf";
+        console.log(`- Manually mapped: ${product.name} -> ${product.image}`);
+      } else if (product.name === "Salad Cá Hồi") {
+        product.image = "samples/food/fish-vegetables";
+        console.log(`- Manually mapped: ${product.name} -> ${product.image}`);
+      } else if (product.name === "Bánh Flan Caramel") {
+        product.image = "samples/food/dessert-bowl";
+        console.log(`- Manually mapped: ${product.name} -> ${product.image}`);
+      }
+    }
+  });
 
   for (const data of productData) {
     const existing = await prisma.product.findFirst({

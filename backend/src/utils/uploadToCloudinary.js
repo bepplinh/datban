@@ -10,7 +10,6 @@ const uploadToCloudinary = (fileBuffer, folder = "products") => {
       },
     );
     stream.end(fileBuffer);
-    console.log("Cloudinary config:", cloudinary.config());
   });
 };
 
